@@ -62,8 +62,7 @@ jobs:
             type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:cache-${{ strategy.job-index }},mode=max
           build-args: |
             BUILDKIT_INLINE_CACHE=1
-          push: true
-          outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true
+          outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
 
       - name: Export digest
         run: |
@@ -129,7 +128,7 @@ jobs:
       - name: Inspect image and get digest
         id: inspect
         run: |
-          digest=$(docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$(echo '${{ steps.meta.outputs.tags }}' | head -1 | cut -d':' -f2) --format '{{.Manifest.Digest}}')
+          digest=$(docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$(echo '${{ steps.meta.outputs.tags }}' | head -1 | cut -d':' -f2) --format '{{.Digest}}')
           echo "digest=$digest" >> $GITHUB_OUTPUT
 
       - name: Generate artifact attestation
