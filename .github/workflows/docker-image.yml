@@ -128,7 +128,7 @@ jobs:
       - name: Inspect image and get digest
         id: inspect
         run: |
-          digest=$(docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$(echo '${{ steps.meta.outputs.tags }}' | head -1 | cut -d':' -f2) --format '{{.Digest}}')
+          digest=$(docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$(echo '${{ steps.meta.outputs.tags }}' | head -1 | cut -d':' -f2) --json | jq -r '.digest')
           echo "digest=$digest" >> $GITHUB_OUTPUT
 
       - name: Generate artifact attestation
