@@ -7,7 +7,8 @@ WORKDIR /app
 # Fetch dependencies
 COPY go.mod go.sum ./
 
-RUN go mod download
+RUN --mount=type=cache,target=/go/pkg/mod \
+    go mod download
 
 COPY pkg ./pkg
 
@@ -15,11 +16,13 @@ COPY cmd/jetstream ./cmd/jetstream
 
 COPY Makefile ./
 
-# Build the application
-RUN make build
+# Build the application with cache mounts
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    make build
 
 # Stage 2: Import SSL certificates
-FROM alpine:latest as certs
+FROM alpine:latest AS certs
 
 RUN apk --update add ca-certificates
 
