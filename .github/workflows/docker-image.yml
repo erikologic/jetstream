@@ -58,11 +58,8 @@ jobs:
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: |
-            type=gha,scope=buildkit-${{ strategy.job-index }}
-            type=gha,scope=buildkit-multiarch
             type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:cache-${{ strategy.job-index }}
           cache-to: |
-            type=gha,mode=max,scope=buildkit-${{ strategy.job-index }}
             type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:cache-${{ strategy.job-index }},mode=max
           build-args: |
             BUILDKIT_INLINE_CACHE=1
