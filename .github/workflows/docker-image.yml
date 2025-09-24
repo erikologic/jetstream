@@ -125,32 +125,10 @@ jobs:
           docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
             $(printf '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@sha256:%s ' *)
 
-      - name: Debug manifest inspection
-        run: |
-          tag=$(echo '${{ steps.meta.outputs.tags }}' | head -1 | cut -d':' -f2)
-          echo "Inspecting tag: $tag"
-          echo "Full image reference: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$tag"
-          echo "Available tags from metadata:"
-          echo '${{ steps.meta.outputs.tags }}'
-
       - name: Inspect image and get digest
         id: inspect
         run: |
-          tag=$(echo '${{ steps.meta.outputs.tags }}' | head -1 | cut -d':' -f2)
-          echo "Inspecting: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$tag"
-
-          # Extract digest from the inspect output by parsing the "Digest:" line
-          output=$(docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$tag)
-          echo "$output"
-
-          digest=$(echo "$output" | grep "^Digest:" | awk '{print $2}')
-          echo "Extracted digest: $digest"
-
-          if [ -z "$digest" ]; then
-            echo "ERROR: Could not extract digest from inspect output"
-            exit 1
-          fi
-
+          digest=$(docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$(echo '${{ steps.meta.outputs.tags }}' | head -1 | cut -d':' -f2) | grep "^Digest:" | awk '{print $2}')
           echo "digest=$digest" >> $GITHUB_OUTPUT
 
       - name: Generate artifact attestation
