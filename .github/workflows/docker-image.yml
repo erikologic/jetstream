@@ -139,29 +139,18 @@ jobs:
           tag=$(echo '${{ steps.meta.outputs.tags }}' | head -1 | cut -d':' -f2)
           echo "Inspecting: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$tag"
 
-          # Debug: show full manifest details
-          docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$tag
+          # Extract digest from the inspect output by parsing the "Digest:" line
+          output=$(docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$tag)
+          echo "$output"
 
-          # Try different digest extraction methods
-          echo "Method 1 - Format template:"
-          digest1=$(docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$tag --format '{{.Digest}}' || echo "failed")
-          echo "digest1=$digest1"
+          digest=$(echo "$output" | grep "^Digest:" | awk '{print $2}')
+          echo "Extracted digest: $digest"
 
-          echo "Method 2 - JSON parsing:"
-          digest2=$(docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$tag --json | jq -r '.digest // empty' || echo "failed")
-          echo "digest2=$digest2"
-
-          # Use whichever method worked
-          if [ -n "$digest1" ] && [ "$digest1" != "failed" ]; then
-            digest="$digest1"
-          elif [ -n "$digest2" ] && [ "$digest2" != "failed" ]; then
-            digest="$digest2"
-          else
-            echo "ERROR: Could not extract digest"
+          if [ -z "$digest" ]; then
+            echo "ERROR: Could not extract digest from inspect output"
             exit 1
           fi
 
-          echo "Final digest=$digest"
           echo "digest=$digest" >> $GITHUB_OUTPUT
 
       - name: Generate artifact attestation
