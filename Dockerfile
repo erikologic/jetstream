@@ -24,7 +24,7 @@ RUN --mount=type=cache,target=/go/pkg/mod \
 # Stage 2: Import SSL certificates
 FROM alpine:latest AS certs
 
-RUN apk --update add ca-certificates
+RUN apk --update add ca-certificates wget
 
 # Stage 3: Build a minimal Docker image
 FROM debian:stable-slim
